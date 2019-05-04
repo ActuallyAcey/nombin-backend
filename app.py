@@ -5,6 +5,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 run_with_ngrok(app)
 CORS(app)
+app.url_map.strict_slashes = False
 
 previous_post_key = 0
 
@@ -46,6 +47,7 @@ def test(id):
 
 @app.route('/new', methods = ['POST'])
 def push_data():
+        global previous_post_key
         data = request.get_json()
 
         post = {'key': previous_post_key + 1, 
@@ -54,8 +56,11 @@ def push_data():
                 'tags': data['tags'],
                 'is_private': data['is_private']}
 
+
         uploaded_noms.append(post)
-        return jsonify({'key': previous_post_key + 1})
+        previous_post_key += 1
+
+        return jsonify({'key': previous_post_key})
 
 
 if __name__ == '__main__':
