@@ -1,4 +1,5 @@
 from flask_ngrok import run_with_ngrok 
+import requests
 
 previous_post_key = 0
 
@@ -33,13 +34,15 @@ def add(data):
     return previous_post_key
 
 def get(key):
-
+ 
         if (id == 'favicon.ico'):
-            {"message": "favicon"}
+        	{"message": "favicon"}
 
         check_id = int(key)
         for nom in uploaded_noms:
                 if nom['key'] == check_id:
-                    return nom
+                	return nom
         
         return {"message": "No post found"}
+
+	
