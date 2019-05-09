@@ -49,7 +49,7 @@ def push_data():
 	noms = mongo.db.nom_list
 	noms.insert(new_nom)
 	previous_post_key += 1
-	return 'Added successfully!'
+	return jsonify({'key': previous_post_key - 1})
 
 
 @app.route('/')
