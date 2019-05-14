@@ -1,24 +1,24 @@
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_pymongo import PyMongo
-from flask_ngrok import run_with_ngrok 
+from os import path
 
-import os
+import server_secrets 
 
-previous_post_key = 0
+from flask_ngrok import run_with_ngrok
 
 app = Flask(__name__)
 
-run_with_ngrok(app)  				#TODO: Remove more testing code
+run_with_ngrok(app)  				#TODO: Remove when deploying; used for exposing localhost as a temporary URL
 
 # CONFIGURATIONS
-                          	# CORS hates APIs being used like they normally are I guess?
+                          	
 app.url_map.strict_slashes = False 	# Fixes "/new/" vs "/new" error
-app.config['MONGO_DBNAME'] = 'NomBinDB'
-app.config['MONGO_URI'] = 'mongodb+srv://nom:nomnomnom@nombindb-i0qby.mongodb.net/test?retryWrites=true'
+app.config['MONGO_DBNAME'] = server_secrets.mongo_db_name
+app.config['MONGO_URI'] = server_secrets.mongo_uri
 
 mongo = PyMongo(app)
-CORS(app)
+CORS(app)							# CORS hates APIs being used like they normally are I guess?
 
 @app.route('/<id>', methods = ['GET'])
 def get_data(id):
@@ -37,30 +37,30 @@ def get_data(id):
 
 @app.route('/new', methods = ['POST'])
 def push_data():
-	global previous_post_key
+
 	data = request.get_json()
 
-	new_nom = {	'key' : previous_post_key + 1,
+	new_nom = {
 				'title': data['title'],
         		'text': data['text'],
         		'tags': data['tags'],
         		'is_private': data['is_private']}
 
 	noms = mongo.db.nom_list
-	noms.insert(new_nom)
-	previous_post_key += 1
-	return jsonify({'key': previous_post_key - 1})
+	key = noms.insert_one(new_nom).inserted_id
+
+	return jsonify({'key': key})
 
 
 @app.route('/')
-def index():
-	return "Hello, World!"
+def landing_page():
+	return "Hello, World!" 
 
 
 @app.route('/favicon.ico')
 def favicon():
-    	return send_from_directory(os.path.join(app.root_path, 'static'),
-                'favicon.ico', mimetype='image/vnd.microsoft.icon')
+    return send_from_directory(path.join(app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon') 
+
 
 if __name__ == '__main__':
     	app.run()
